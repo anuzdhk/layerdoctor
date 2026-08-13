@@ -1,0 +1,783 @@
+/*
+ * LayerDoctor panel styles.
+ *
+ * UXP CSS notes learned the hard way:
+ *   - CSS grid is unsupported. Flexbox only.
+ *   - Container <div>s do NOT reliably default to block stacking, so every
+ *     container that should stack declares flex-direction: column explicitly.
+ *   - `.hidden` uses !important because it must beat any layout rule that also
+ *     sets `display` (a plain `.hidden` loses to a later same-specificity rule).
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+/*
+ * CRITICAL for UXP: a flex column with a constrained height shrinks its children
+ * instead of scrolling, which makes stacked rows overlap each other. Every item
+ * that lives inside a scrolling or height-limited flex column must opt out.
+ */
+.card,
+.health,
+.confirm-card,
+.field,
+.detail-head,
+.issue-card,
+.layer-row,
+.preview-row,
+.stat-row,
+.toggle-row,
+.layer-group-header,
+.btn {
+  flex-shrink: 0;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #1e1e1e;
+  color: #d5d5d5;
+  font-size: 12px;
+  font-family: sans-serif;
+  user-select: none;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ---------- header ---------- */
+
+.header {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #333333;
+  margin-bottom: 10px;
+}
+
+.header-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.header-titles {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.header-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.header-actions .icon-btn {
+  margin-left: 6px;
+}
+
+/* Shared sizing for every inline SVG icon. */
+.icon {
+  width: 14px;
+  height: 14px;
+}
+
+.icon-sm {
+  width: 11px;
+  height: 11px;
+  margin-right: 4px;
+}
+
+.icon-btn {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border: 1px solid #3d3d3d;
+  border-radius: 3px;
+  background-color: #2c2c2c;
+  padding: 5px 7px;
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  background-color: #383838;
+}
+
+.icon-btn:disabled {
+  background-color: #262626;
+  border-color: #333333;
+  opacity: 0.45;
+  cursor: default;
+}
+
+/*
+ * The logo is a wordmark, so it replaces the panel title text entirely.
+ * UXP needs explicit width AND height on <img>; "auto" does not resolve the
+ * SVG's intrinsic ratio reliably. 1382.92 x 417.68 ≈ 3.31:1.
+ */
+.logo {
+  width: 116px;
+  height: 35px;
+}
+
+.header-tagline {
+  margin-top: 2px;
+  font-size: 11px;
+  color: #8c8c8c;
+}
+
+/* ---------- notice / error strip ---------- */
+
+.notice {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  border: 1px solid #6b3a3a;
+  background-color: #2c2020;
+  color: #f0b8b8;
+  font-size: 11px;
+  user-select: text;
+}
+
+.notice.info {
+  border-color: #35506b;
+  background-color: #1f2733;
+  color: #bcd4f0;
+}
+
+/* ---------- states ---------- */
+
+.state {
+  display: flex;
+  flex-direction: column;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 26px 10px;
+  text-align: center;
+}
+
+.empty-title {
+  font-size: 13px;
+  color: #e6e6e6;
+}
+
+.empty-sub {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #8c8c8c;
+}
+
+/* ---------- cards ---------- */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  background-color: #262626;
+  border: 1px solid #333333;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 8px;
+}
+
+.card-title {
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  color: #8c8c8c;
+  margin-bottom: 6px;
+}
+
+.doc-name {
+  font-size: 13px;
+  color: #ffffff;
+  user-select: text;
+}
+
+/* ---------- document health ---------- */
+
+.health {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 10px;
+  margin-bottom: 8px;
+  border: 1px solid #333333;
+  border-radius: 4px;
+  background-color: #262626;
+}
+
+.health-title {
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  color: #8c8c8c;
+}
+
+.health-score {
+  margin-top: 6px;
+  font-size: 30px;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.health-max {
+  font-size: 14px;
+  font-weight: normal;
+  color: #7a7a7a;
+}
+
+.health-status {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #d5d5d5;
+}
+
+.health-sub {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #8c8c8c;
+}
+
+/* Score tone. Applied to the health card, colouring the number and status. */
+.health.tone-excellent .health-score,
+.health.tone-excellent .health-status {
+  color: #4bb37b;
+}
+
+.health.tone-good .health-score,
+.health.tone-good .health-status {
+  color: #7fc8a9;
+}
+
+.health.tone-warn .health-score,
+.health.tone-warn .health-status {
+  color: #e6a23c;
+}
+
+.health.tone-critical .health-score,
+.health.tone-critical .health-status {
+  color: #e56c6c;
+}
+
+.health.tone-excellent .health-max,
+.health.tone-good .health-max,
+.health.tone-warn .health-max,
+.health.tone-critical .health-max {
+  color: #7a7a7a;
+}
+
+.penalty-value {
+  color: #e56c6c;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* ---------- issue cards ---------- */
+
+.issue-list {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+
+.issue-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: #262626;
+  border: 1px solid #333333;
+  border-radius: 4px;
+  padding: 9px 10px;
+  margin-bottom: 6px;
+  cursor: pointer;
+}
+
+.issue-card:hover {
+  background-color: #2e2e2e;
+  border-color: #454545;
+}
+
+.issue-card.is-empty {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.issue-card.is-empty:hover {
+  background-color: #262626;
+  border-color: #333333;
+}
+
+.issue-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+}
+
+.issue-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.issue-title {
+  font-size: 12px;
+  color: #ffffff;
+}
+
+.issue-count {
+  margin-top: 2px;
+  font-size: 11px;
+  color: #8c8c8c;
+}
+
+.issue-count.warn {
+  color: #e6a23c;
+}
+
+.issue-count.ok {
+  color: #4bb37b;
+}
+
+.issue-chevron {
+  color: #7a7a7a;
+  font-size: 13px;
+  padding-left: 6px;
+}
+
+/* ---------- detail view ---------- */
+
+.detail-head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+/* UXP keeps some native button chrome, so style it as a deliberate small button
+   rather than a borderless link that renders half-way. */
+.detail-back {
+  border: 1px solid #3d3d3d;
+  border-radius: 3px;
+  background-color: #2c2c2c;
+  color: #b5b5b5;
+  font-size: 10px;
+  padding: 4px 8px;
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.detail-back:hover {
+  background-color: #383838;
+  color: #ffffff;
+}
+
+.detail-icon {
+  margin-right: 6px;
+}
+
+.detail-title {
+  font-size: 13px;
+  font-weight: bold;
+  color: #ffffff;
+  flex: 1;
+}
+
+.detail-note {
+  font-size: 11px;
+  color: #8c8c8c;
+  margin-bottom: 8px;
+}
+
+.layer-list {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 2px;
+  max-height: 260px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid #303030;
+  border-radius: 4px;
+  background-color: #1c1c1c;
+}
+
+/* Scrollbar styling is a progressive enhancement; UXP ignores it harmlessly. */
+.layer-list::-webkit-scrollbar {
+  width: 10px;
+}
+
+.layer-list::-webkit-scrollbar-track {
+  background-color: #1c1c1c;
+  border-radius: 5px;
+}
+
+.layer-list::-webkit-scrollbar-thumb {
+  background-color: #4d4d4d;
+  border-radius: 5px;
+}
+
+.layer-list::-webkit-scrollbar-thumb:hover {
+  background-color: #616161;
+}
+
+.layer-row {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 8px;
+  margin-bottom: 4px;
+  border: 1px solid #303030;
+  border-radius: 3px;
+  background-color: #262626;
+  font-size: 11px;
+  line-height: 15px;
+  color: #d5d5d5;
+  word-break: break-word;
+  user-select: text;
+}
+
+.layer-row:last-child {
+  margin-bottom: 0;
+}
+
+.layer-row-name {
+  font-size: 11px;
+  line-height: 15px;
+  color: #ffffff;
+  word-break: break-word;
+}
+
+.layer-row-meta {
+  margin-top: 3px;
+  font-size: 10px;
+  line-height: 14px;
+  color: #8a8a8a;
+  word-break: break-word;
+}
+
+/* The matched rule / reason, so it reads as a label rather than more metadata. */
+.layer-row-reason {
+  margin-top: 3px;
+  font-size: 10px;
+  line-height: 14px;
+  color: #e6a23c;
+  word-break: break-word;
+}
+
+.layer-group-header {
+  font-size: 10px;
+  letter-spacing: 0.4px;
+  color: #e6a23c;
+  padding: 6px 4px 4px 4px;
+}
+
+.list-count {
+  font-size: 10px;
+  color: #8c8c8c;
+  margin-bottom: 4px;
+}
+
+/* Nested inside a card or the confirm panel, the list drops its own chrome so
+   the borders do not double up — it keeps only the scrolling behaviour. */
+.card .layer-list,
+.confirm-card .layer-list {
+  border: none;
+  background-color: transparent;
+  padding: 0;
+}
+
+/* ---------- issue checkboxes ---------- */
+
+.issue-check {
+  margin-right: 8px;
+}
+
+/* ---------- form fields ---------- */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.field-label {
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  color: #8c8c8c;
+  margin-bottom: 4px;
+}
+
+.field-label-spaced {
+  margin-top: 8px;
+}
+
+.input {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 3px;
+  border: 1px solid #4a4a4a;
+  background-color: #1b1b1b;
+  color: #ffffff;
+  font-size: 12px;
+  user-select: text;
+}
+
+/* ---------- segmented control ---------- */
+
+.segmented {
+  display: flex;
+  flex-direction: row;
+}
+
+.seg-btn {
+  flex: 1;
+  padding: 6px 4px;
+  border: 1px solid #4a4a4a;
+  background-color: #2c2c2c;
+  color: #b5b5b5;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.seg-btn:hover {
+  background-color: #363636;
+}
+
+.seg-btn.is-active {
+  background-color: #2680eb;
+  border-color: #2680eb;
+  color: #ffffff;
+}
+
+.seg-btn:disabled {
+  color: #666666;
+  cursor: default;
+}
+
+/* ---------- rename preview ---------- */
+
+.preview-row {
+  display: flex;
+  flex-direction: column;
+  padding: 5px 8px;
+  margin-bottom: 4px;
+  border: 1px solid #303030;
+  border-radius: 3px;
+  background-color: #242424;
+  user-select: text;
+}
+
+.preview-from {
+  font-size: 11px;
+  line-height: 15px;
+  color: #8c8c8c;
+  word-break: break-word;
+}
+
+.preview-to {
+  font-size: 11px;
+  line-height: 15px;
+  color: #7fc8a9;
+  word-break: break-word;
+}
+
+/* ---------- confirmation ---------- */
+
+.confirm-card {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  margin-bottom: 8px;
+  border: 1px solid #6b3a3a;
+  border-radius: 4px;
+  background-color: #2c2020;
+}
+
+.confirm-title {
+  font-size: 13px;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 6px;
+}
+
+.confirm-message {
+  font-size: 11px;
+  color: #e0c4c4;
+  margin-bottom: 8px;
+}
+
+.btn-danger {
+  background-color: #b03a3a;
+  border-color: #b03a3a;
+}
+
+.btn-danger:hover {
+  background-color: #c44a4a;
+}
+
+.detail-actions {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.detail-actions .btn {
+  margin-bottom: 6px;
+}
+
+.detail-actions .btn:last-child {
+  margin-bottom: 0;
+}
+
+.detail-actions .btn-secondary {
+  margin-top: 0;
+}
+
+/* ---------- settings toggles ---------- */
+
+.toggle-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.toggle-label {
+  flex: 1;
+  font-size: 11px;
+  color: #c8c8c8;
+  padding-left: 6px;
+}
+
+.toggle-label.is-off {
+  color: #8c8c8c;
+}
+
+/* ---------- statistics ---------- */
+
+.stats {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.stat-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid #2e2e2e;
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}
+
+.stat-label {
+  color: #a8a8a8;
+  font-size: 11px;
+}
+
+.stat-value {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* ---------- layer tree preview ---------- */
+
+.tree {
+  margin: 0;
+  max-height: 200px;
+  overflow: auto;
+  font-family: monospace;
+  font-size: 10px;
+  line-height: 14px;
+  color: #b5b5b5;
+  white-space: pre;
+  user-select: text;
+}
+
+.hint {
+  margin-top: 6px;
+  font-size: 10px;
+  color: #6f6f6f;
+}
+
+/* ---------- actions ---------- */
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+}
+
+.btn {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 4px;
+  border: 1px solid #4a4a4a;
+  background-color: #383838;
+  color: #ffffff;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-color: #2680eb;
+  border-color: #2680eb;
+}
+
+.btn-primary:hover {
+  background-color: #378ef0;
+}
+
+.btn-secondary {
+  margin-top: 6px;
+}
+
+.btn:disabled {
+  background-color: #333333;
+  border-color: #3d3d3d;
+  color: #777777;
+  cursor: default;
+}
+
+/* ---------- footer ---------- */
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #333333;
+  font-size: 10px;
+  color: #6f6f6f;
+}
+
+.footer-credit {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 5px;
+  color: #7a7a7a;
+}

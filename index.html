@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="header">
+        <div class="header-row">
+          <div class="header-titles">
+            <img class="logo" src="logo.svg" alt="LayerDoctor" />
+            <div class="header-tagline">Clean PSD. Clean Mind.</div>
+          </div>
+          <div class="header-actions">
+            <button id="btn-reload" class="icon-btn" title="Rescan document">
+              <img class="icon" src="icons/reload.svg" alt="Reload" />
+            </button>
+            <button id="btn-settings" class="icon-btn" title="Settings">
+              <img class="icon" src="icons/settings.svg" alt="Settings" />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Inline error / notice strip -->
+      <div id="notice" class="notice hidden"></div>
+
+      <!-- STATE: no document open -->
+      <section id="state-no-doc" class="state hidden">
+        <div class="empty">
+          <div class="empty-title">No document open.</div>
+          <div class="empty-sub">Open a PSD to start scanning.</div>
+        </div>
+      </section>
+
+      <!-- STATE: ready to scan -->
+      <section id="state-ready" class="state hidden">
+        <div class="empty">
+          <div class="empty-title">Ready to scan.</div>
+          <div class="empty-sub" id="ready-doc-name"></div>
+        </div>
+      </section>
+
+      <!-- STATE: scanning -->
+      <section id="state-scanning" class="state hidden">
+        <div class="empty">
+          <div class="empty-title">Scanning document...</div>
+          <div class="empty-sub">Reading the layer tree.</div>
+        </div>
+      </section>
+
+      <!-- STATE: results -->
+      <section id="state-results" class="state hidden">
+        <div class="health" id="health-card">
+          <div class="health-title">DOCUMENT HEALTH</div>
+          <div class="health-score">
+            <span id="health-value">0</span><span class="health-max"> / 100</span>
+          </div>
+          <div class="health-status" id="health-status"></div>
+          <div class="health-sub" id="health-sub"></div>
+        </div>
+
+        <div class="issue-list" id="issue-list"></div>
+
+        <button id="btn-fix-selected" class="btn btn-secondary" disabled>
+          FIX SELECTED
+        </button>
+        <div class="hint" id="fix-hint">
+          Tick the issues you want LayerDoctor to handle.
+        </div>
+
+        <div class="card">
+          <div class="card-title">DOCUMENT STATISTICS</div>
+          <ul class="stats" id="stats-list"></ul>
+        </div>
+
+        <div class="card hidden" id="breakdown-card">
+          <div class="card-title">SCORE BREAKDOWN</div>
+          <ul class="stats" id="breakdown-list"></ul>
+        </div>
+
+        <div class="card">
+          <div class="card-title">LAYER TREE</div>
+          <pre class="tree" id="tree-preview"></pre>
+          <div class="hint" id="scan-meta"></div>
+        </div>
+      </section>
+
+      <!-- STATE: issue detail (drill-down from an issue card) -->
+      <section id="state-detail" class="state hidden">
+        <div class="detail-head">
+          <button id="btn-back" class="detail-back">&lsaquo; Back</button>
+          <img class="icon detail-icon" id="detail-icon" src="icons/naming.svg" />
+          <div class="detail-title" id="detail-title"></div>
+        </div>
+        <div class="detail-note" id="detail-note"></div>
+        <div class="detail-actions" id="detail-actions"></div>
+        <div class="list-count" id="detail-count"></div>
+        <ul class="layer-list" id="detail-list"></ul>
+      </section>
+
+      <!-- STATE: rename tool -->
+      <section id="state-rename" class="state hidden">
+        <div class="detail-head">
+          <button id="btn-rename-back" class="detail-back">&lsaquo; Back</button>
+          <div class="detail-title">Safe Rename</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">SCOPE</div>
+          <div class="segmented" id="rename-scope"></div>
+          <div class="hint" id="rename-scope-hint"></div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">STRATEGY</div>
+          <div class="segmented" id="rename-strategy"></div>
+        </div>
+
+        <div class="field hidden" id="field-prefix">
+          <div class="field-label">PREFIX</div>
+          <input id="input-prefix" type="text" class="input" placeholder="Hero" />
+        </div>
+
+        <div class="field hidden" id="field-find">
+          <div class="field-label">FIND</div>
+          <input id="input-find" type="text" class="input" placeholder="copy" />
+          <div class="field-label field-label-spaced">REPLACE</div>
+          <input
+            id="input-replace"
+            type="text"
+            class="input"
+            placeholder="variant"
+          />
+        </div>
+
+        <div class="card">
+          <div class="card-title">PREVIEW</div>
+          <div class="hint" id="rename-preview-count"></div>
+          <ul class="layer-list" id="rename-preview"></ul>
+        </div>
+
+        <button id="btn-rename-apply" class="btn btn-primary" disabled>APPLY</button>
+        <button id="btn-rename-cancel" class="btn btn-secondary">CANCEL</button>
+      </section>
+
+      <!-- STATE: confirmation for destructive actions -->
+      <section id="state-confirm" class="state hidden">
+        <div class="confirm-card">
+          <div class="confirm-title" id="confirm-title"></div>
+          <div class="confirm-message" id="confirm-message"></div>
+          <ul class="layer-list" id="confirm-list"></ul>
+        </div>
+        <button id="btn-confirm-ok" class="btn btn-danger">CONFIRM</button>
+        <button id="btn-confirm-cancel" class="btn btn-secondary">CANCEL</button>
+      </section>
+
+      <!-- STATE: settings -->
+      <section id="state-settings" class="state hidden">
+        <div class="detail-head">
+          <button id="btn-settings-back" class="detail-back">&lsaquo; Back</button>
+          <div class="detail-title">Settings</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">DEEP NESTING THRESHOLD</div>
+          <input
+            id="input-threshold"
+            type="number"
+            class="input"
+            min="2"
+            max="20"
+            step="1"
+          />
+          <div class="hint">Groups nested deeper than this are flagged.</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">BAD-NAME DETECTION</div>
+          <div id="settings-rules"></div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">PERFORMANCE</div>
+          <div id="settings-performance"></div>
+        </div>
+
+        <button id="btn-settings-save" class="btn btn-primary">
+          SAVE &amp; RESCAN
+        </button>
+        <button id="btn-settings-reset" class="btn btn-secondary">
+          RESET TO DEFAULTS
+        </button>
+      </section>
+
+      <!-- STATE: applying changes -->
+      <section id="state-busy" class="state hidden">
+        <div class="empty">
+          <div class="empty-title" id="busy-title">Applying changes...</div>
+          <div class="empty-sub">Photoshop is in a modal operation.</div>
+        </div>
+      </section>
+
+      <div class="actions">
+        <button id="btn-scan" class="btn btn-primary">SCAN DOCUMENT</button>
+      </div>
+
+      <footer class="footer">
+        <div class="footer-line">100% local &bull; No files uploaded</div>
+        <div class="footer-credit">
+          <img class="icon-sm" src="icons/copyright.svg" alt="Copyright" />
+          <span>madebyanuz</span>
+        </div>
+      </footer>
+    </div>
+
+    <script src="main.js"></script>
+  </body>
+</html>
